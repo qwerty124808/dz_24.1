@@ -5,7 +5,7 @@ class Course(models.Model):
     name = models.CharField(max_length=150, verbose_name='название')
     photo = models.ImageField(upload_to='', verbose_name='превью' ,**NULLABLE)
     description = models.TextField(verbose_name='описание', **NULLABLE)
-    user = models.ForeignKey(User,  verbose_name='владелец', on_delete=models.CASCADE, **NULLABLE)
+    user = models.ForeignKey(User,  verbose_name='владелец', related_name="courses", on_delete=models.CASCADE)
     
 
     def __str__(self):
