@@ -13,13 +13,7 @@ class CourseViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
             serializer.save(user=self.request.user)
         
-    def update(self, request, *args, **kwargs):
-        
-        subs = Subscription.objects.filter(user=request.user)
-        emails = get_users_emails_from_subs(subs)
-        send_course_update_email.delay(emails)
-        
-        return super().update(request, *args, **kwargs)
+    
 
     def get_queryset(self):
 
