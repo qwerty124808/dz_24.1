@@ -1,13 +1,15 @@
 from rest_framework import viewsets, generics
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import OrderingFilter
-from course.models import Course, Lesson, Payment
-from course.serializers import CourseSerializer, LessonSerializer, PaymentSerializer 
+from course.models import Course, Lesson, Payment, Subscription
+from course.pagination import MyPagination
+from course.serializers import CourseSerializer, LessonSerializer, PaymentSerializer, SubscriptionSerializer 
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from course.permision import CanCreate, IsModerator, IsOwner
 
 class CourseViewSet(viewsets.ModelViewSet):
     serializer_class = CourseSerializer
+    pagination_class = MyPagination
     permission_classes = [IsAuthenticated]
 
     def perform_create(self, serializer):
@@ -43,10 +45,21 @@ class LessonCreateAPIView(generics.CreateAPIView):
     permission_classes = (IsAuthenticated, CanCreate, AllowAny)
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        if serializer.is_valid():
+            serializer.save(user=self.request.user)
+
+            # """Переопределение метода perform_create для добавления пользователя созданному уроку"""
+            # new_lesson = serializer.save()
+            # new_lesson.owner = self.request.user
+            # new_lesson.save()
+            # # Отправка на выполнение задачи при создании нового урока в курсе
+            # if new_lesson:
+            #     send_course_create(new_lesson.course.id)
+
 
 class LessonListAPIView(generics.ListAPIView):
     serializer_class = LessonSerializer
+    pagination_class = MyPagination
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
@@ -86,3 +99,36 @@ class PaymentListAPIView(generics.ListAPIView):
     filter_backends = (DjangoFilterBackend, OrderingFilter)
     filterset_fields = ('course_name', 'lesson_name', 'payment_type')
     ordering_fields = ('date_of_payment', )
+
+
+class SubscriptionCreateAPIView(generics.CreateAPIView):
+    """Создание подписки"""
+
+    serializer_class = SubscriptionSerializer
+
+
+class SubscriptionListAPIView(generics.ListAPIView):
+    """Просмотр списка подписок"""
+
+    serializer_class = SubscriptionSerializer
+    queryset = Subscription.objects.all()
+
+
+class SubscriptionRetrieveAPIView(generics.RetrieveAPIView):
+    """Отображение элемента подписки"""
+
+    serializer_class = SubscriptionSerializer
+    queryset = Subscription.objects.all()
+
+
+class SubscriptionUpdateAPIView(generics.UpdateAPIView):
+    """Изменение элемента подписки"""
+
+    serializer_class = SubscriptionSerializer
+    queryset = Subscription.objects.all()
+
+
+class SubscriptionDestroyAPIView(generics.DestroyAPIView):
+    """Удаление элемента подписки"""
+
+    queryset = Subscription.objects.all()
